@@ -26,12 +26,11 @@ private:
 
 	VkInstance instance;
 
-	bool initWindow() {
+	void bool initWindow() {
 		// glfw 初始化
 		if (glfwInit() == GLFW_FALSE)
 		{
-			std::cout << "Failed to init GLFW!\n";
-			return false;
+			throw std::runtime_error("Failed to init GLFW!\n");
 		}
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -41,8 +40,7 @@ private:
 		GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 		if (window == nullptr)
 		{
-			std::cout << "Failed to create window using GLFW!\n";
-			return false;
+			throw std::runtime_error("Failed to create window using GLFW!\n");
 		}
 	}
 
@@ -68,14 +66,16 @@ private:
 	}
 
 	void createInstance() {
+		// 应用程序信息
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Hello Triangle";
+		appInfo.pApplicationName = "Hello Vulkan";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "No Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
+		// 实例信息
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
