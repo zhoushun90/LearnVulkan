@@ -98,6 +98,28 @@ foreach(DEMO ${DEMOS})
 		set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin")
 	endif(WIN32)
 
+	# copy shader files to build directory
+	file(GLOB SHADERS
+			 "src/${DEMO}/*.vert"
+			 "src/${DEMO}/*.frag"
+	)
+	foreach(SHADER ${SHADERS})
+		if(WIN32)
+			# configure_file(${SHADER} "test")
+			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
+		elseif(UNIX AND NOT APPLE)
+			file(COPY ${SHADER} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
+		elseif(APPLE)
+			# create symbolic link for *.vert *.frag
+			get_filename_component(SHADERNAME ${SHADER} NAME)
+			makeLink(${SHADER} ${CMAKE_CURRENT_BINARY_DIR}/bin/${SHADERNAME} ${NAME})
+		endif(WIN32)
+	endforeach(SHADER)
+	# if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
+	if(MSVC)
+		configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
+	endif(MSVC)
+		
 	# if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
 	if(MSVC)
 		configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
