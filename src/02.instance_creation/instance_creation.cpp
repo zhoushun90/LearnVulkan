@@ -26,7 +26,7 @@ private:
 
 	VkInstance instance;
 
-	void bool initWindow() {
+	void initWindow() {
 		// glfw 初始化
 		if (glfwInit() == GLFW_FALSE)
 		{
@@ -37,7 +37,7 @@ private:
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		// 创建窗体
-		GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 		if (window == nullptr)
 		{
 			throw std::runtime_error("Failed to create window using GLFW!\n");

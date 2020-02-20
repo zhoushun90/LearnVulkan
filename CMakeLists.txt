@@ -30,7 +30,9 @@ find_package(Vulkan REQUIRED)
 message(STATUS "Found Vulkan in ${Vulkan_INCLUDE_DIR}")
 
 if(WIN32)
-  set(LIBS glfw3 Vulkan-1)
+  set(LIBS 
+	${GLFW3_LIBRARY}
+	${Vulkan_LIBRARY})
 elseif(UNIX AND NOT APPLE)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
   find_package(X11 REQUIRED)
@@ -59,12 +61,6 @@ set(LEARNS
 include_directories(${GLM_INCLUDE_DIR})
 include_directories(${GLFW3_INCLUDE_DIR})
 include_directories(${Vulkan_INCLUDE_DIR})
-
-
-link_directories(
-${GLFW3_LIBRARY}
-${Vulkan_LIBRARY}
-)
 
 macro(SUBDIRLIST result curdir)
     file(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -104,22 +100,12 @@ foreach(DEMO ${DEMOS})
 			 "src/${DEMO}/*.frag"
 	)
 	foreach(SHADER ${SHADERS})
-		if(WIN32)
-			# configure_file(${SHADER} "test")
-			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
-		elseif(UNIX AND NOT APPLE)
-			file(COPY ${SHADER} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
-		elseif(APPLE)
-			# create symbolic link for *.vert *.frag
-			get_filename_component(SHADERNAME ${SHADER} NAME)
-			makeLink(${SHADER} ${CMAKE_CURRENT_BINARY_DIR}/bin/${SHADERNAME} ${NAME})
-		endif(WIN32)
-	endforeach(SHADER)
-	# if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
-	if(MSVC)
-		configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
-	endif(MSVC)
+
+		STRING(REGEX REPLACE ".*/(.*)" "\\1" FILE_NAME ${SHADER})
+		add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND 
+			${VulKan_DIR}/bin/glslangValidator.exe -V ${SHADER} -o $<TARGET_FILE_DIR:${NAME}>/${FILE_NAME})
 		
+	endforeach(SHADER)
 	# if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
 	if(MSVC)
 		configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)

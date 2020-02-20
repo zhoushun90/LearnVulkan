@@ -131,6 +131,11 @@ private:
     /** 管道布局 */
     VkPipelineLayout pipelineLayout;
 
+    /** 帧缓存 */
+    std::vector <VkFramebuffer> swapChainFramebuffers;
+    /** 渲染过程集 */
+    VkRenderPass renderPass;
+
     void initWindow() {
         glfwInit();
 
@@ -156,6 +161,10 @@ private:
     }
 
     void cleanup() {
+        for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
+            vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
+        }
+
         // 销毁管道布局
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
@@ -356,6 +365,29 @@ private:
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
     }
 
+    /** 创建帧缓存 */
+    void createFramebuffers() {
+        swapChainFramebuffers.resize(swapChainImageViews.size());
+
+        for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+            VkImageView attachments[] = {
+                swapChainImageViews[i]
+            };
+
+            VkFramebufferCreateInfo framebufferInfo = {};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = renderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = swapChainExtent.width;
+            framebufferInfo.height = swapChainExtent.height;
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create framebuffer!");
+            }
+        }
+    }
     /** 创建Shader */
     VkShaderModule createShaderModule(const std::vector<char>& code) {
         VkShaderModuleCreateInfo createInfo = {};
